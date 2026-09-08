@@ -216,7 +216,8 @@ body.hatco-quote-ux {
   width: auto;
 }
 
-.hatco-quote-ux .hatco-quantity-control .js-wdac-form-products-item-add {
+.hatco-quote-ux .hatco-quantity-control .js-wdac-form-products-item-add,
+.hatco-quote-ux .hatco-quantity-control .hatco-color-quantity-input {
   appearance: textfield;
   border: 0 !important;
   border-radius: 0;
@@ -235,7 +236,9 @@ body.hatco-quote-ux {
 }
 
 .hatco-quote-ux .hatco-quantity-control .js-wdac-form-products-item-add::-webkit-inner-spin-button,
-.hatco-quote-ux .hatco-quantity-control .js-wdac-form-products-item-add::-webkit-outer-spin-button {
+.hatco-quote-ux .hatco-quantity-control .js-wdac-form-products-item-add::-webkit-outer-spin-button,
+.hatco-quote-ux .hatco-quantity-control .hatco-color-quantity-input::-webkit-inner-spin-button,
+.hatco-quote-ux .hatco-quantity-control .hatco-color-quantity-input::-webkit-outer-spin-button {
   appearance: none;
   margin: 0;
 }
@@ -342,6 +345,71 @@ body.hatco-quote-ux {
 
 .hatco-quote-ux .hatco-single-size .wdac-text-semismall {
   display: none;
+}
+
+.hatco-quote-ux
+  .wdac-form-products__quality-sizes-wrapper.hatco-multicolor-ready
+  > .wdac-form-products__quality-sizes {
+  display: none !important;
+}
+
+.hatco-quote-ux
+  .hatco-single-size.hatco-multicolor-ready
+  .wdac-text-semismall {
+  display: block;
+}
+
+.hatco-quote-ux .hatco-color-quantity-list {
+  display: grid;
+  gap: 12px;
+  margin: 14px 0 24px;
+}
+
+.hatco-quote-ux .hatco-color-quantity-row {
+  background: #fff;
+  border: 1px solid var(--hatco-border);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.hatco-quote-ux .hatco-color-quantity-row__header {
+  align-items: center;
+  color: var(--hatco-ink);
+  display: flex;
+  font-size: 0.95rem;
+  gap: 9px;
+  margin: 0 0 10px;
+}
+
+.hatco-quote-ux .hatco-color-quantity-row__swatch {
+  background: var(--hatco-color, #d2d5d3);
+  border: 2px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px #9ba59f;
+  flex: 0 0 28px;
+  height: 28px;
+  width: 28px;
+}
+
+.hatco-quote-ux .hatco-color-quantity-row__fields {
+  display: grid;
+  gap: 10px;
+}
+
+.hatco-quote-ux .hatco-color-quantity-row__field {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.hatco-quote-ux .hatco-color-quantity-row__field > label {
+  color: var(--hatco-muted);
+  flex: 1 1 auto;
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.2;
+  min-width: 0;
 }
 
 .hatco-quote-ux .hatco-single-size .wdac-form-products__size-label {

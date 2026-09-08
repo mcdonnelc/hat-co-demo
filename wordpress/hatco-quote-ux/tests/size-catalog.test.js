@@ -2,7 +2,7 @@ const assert = require("node:assert/strict");
 const { get, products } = require("../assets/size-catalog.js");
 
 const expected = {
-  "112": ["SM", "OSFM", "XL"],
+  "112": ["SM", "One Size Fits Most", "XL"],
   "6606": ["Adjustable"],
   "110": ["S/M", "L/XL"],
   "110M": ["Adjustable"],
