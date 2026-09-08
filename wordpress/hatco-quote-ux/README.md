@@ -23,8 +23,7 @@ A small WordPress plugin that improves the existing Hat.co Gravity Form without 
   hidden field 94 through AJAX page changes. The field remains optional, so
   non-ad visitors can submit normally.
 - Keeps Previous, Next, and Submit controls fixed to the bottom of the
-  viewport on every form page, with content clearance and space reserved for
-  the Tidio launcher.
+  viewport on every form page, with content clearance and safe-area padding.
 - Moves all location-specific Popular add-ons fields below “Describe your
   order” while preserving Gravity Forms conditional visibility.
 - Adds meaningful headings to the existing four form pages.
