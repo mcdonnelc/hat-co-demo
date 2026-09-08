@@ -146,15 +146,16 @@ body.hatco-quote-ux {
   background: transparent;
   color: var(--hatco-ink);
   display: block;
+  flex: 1 1 auto;
   font-size: 0.78rem;
   font-weight: 700;
-  hyphens: auto;
   left: auto;
   line-height: 1.2;
   max-width: none;
+  min-width: 0;
   opacity: 1;
   overflow: visible;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
   padding: 0;
   pointer-events: none;
   position: static;
@@ -164,6 +165,7 @@ body.hatco-quote-ux {
   visibility: visible;
   white-space: normal;
   width: auto;
+  word-break: normal;
 }
 
 .hatco-quote-ux .wdac-form-products__color .wdac-form-tooltiptext::after {
