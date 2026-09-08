@@ -477,7 +477,12 @@
     updateHiddenOrderSummary();
   }
 
-  function renderMultiColorQuantities(item, wrapper, product) {
+  function renderMultiColorQuantities(
+    item,
+    wrapper,
+    product,
+    syncProducts = true
+  ) {
     const qualityId = wrapper.dataset.qualityId;
     const productName = item.dataset.productId;
     const qualityName = qualityId.slice(qualityId.lastIndexOf("|") + 1);
@@ -517,7 +522,9 @@
       )
     );
     wrapper.classList.add("hatco-multicolor-ready");
-    updateMultiColorProducts(item, wrapper);
+    if (syncProducts) {
+      updateMultiColorProducts(item, wrapper);
+    }
   }
 
   function initializeMultiColor(item, productByQuality) {
@@ -552,8 +559,18 @@
         }
       });
 
-      renderMultiColorQuantities(item, wrapper, product);
+      renderMultiColorQuantities(item, wrapper, product, false);
     });
+
+    const total = (window.WdacProductsObject?.Products || [])
+      .filter((product) => product.name === item.dataset.productId)
+      .reduce((sum, product) => sum + (product.total || 0), 0);
+    const count = item.querySelector(".js-form-products-title-count-value");
+    if (count) {
+      count.textContent = total > 0 ? String(total) : "";
+      count.parentNode.classList.toggle("active", total > 0);
+    }
+    updateHiddenOrderSummary();
   }
 
   function productForQuality(item, qualityId) {
