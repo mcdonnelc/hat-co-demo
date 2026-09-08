@@ -207,8 +207,10 @@
 
     field.classList.add("hatco-size-field");
 
+    const parent = input.parentNode;
+    const nextSibling = input.nextSibling;
     const control = createQuantityControl(input);
-    input.parentNode.insertBefore(control, input);
+    parent.insertBefore(control, nextSibling);
 
     input.setAttribute("inputmode", "numeric");
     input.setAttribute("min", "0");
