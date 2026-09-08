@@ -108,8 +108,9 @@ body.hatco-quote-ux {
   display: flex;
   flex-flow: row nowrap;
   gap: 9px;
-  height: 54px;
+  height: auto;
   justify-content: flex-start;
+  min-height: 54px;
   min-width: 0;
   opacity: 1;
   padding: 7px 9px;
@@ -144,22 +145,24 @@ body.hatco-quote-ux {
 .hatco-quote-ux .wdac-form-products__color .wdac-form-tooltiptext {
   background: transparent;
   color: var(--hatco-ink);
-  display: -webkit-box;
+  display: block;
   font-size: 0.78rem;
   font-weight: 700;
+  hyphens: auto;
   left: auto;
-  line-height: 1.15;
+  line-height: 1.2;
   max-width: none;
   opacity: 1;
-  overflow: hidden;
+  overflow: visible;
+  overflow-wrap: anywhere;
   padding: 0;
   pointer-events: none;
   position: static;
   text-align: left;
+  text-overflow: clip;
   transform: none;
   visibility: visible;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  white-space: normal;
   width: auto;
 }
 
