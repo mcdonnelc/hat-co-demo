@@ -24,6 +24,7 @@
       <p class="eyebrow">Project 05 · Decision brief · Sep 8, 2026</p>
       <h1>Fold DTFs.co into Shirt.co. Keep DTF as a method, not a consumer brand.</h1>
       <p class="lede">The big transfer companies win as factories: instant checkout, gang sheets sold by the foot, and resolution checks before money changes hands. DTFs.co is attracting hobbyists with cheap ads and SEO, then printing low-dollar, low-quality files. Shirt orders already make more money. Stop competing with Ninja. Route transfer demand into finished apparel and quiet wholesale.</p>
+      <p class="lede" style="margin-top:16px"><a href="shirtco-dtf/">Open the Shirt.co DTF replacement page</a> · <a href="redirects.csv">Redirect map (CSV)</a></p>
 
       <section class="decision">
         <p><strong>Recommendation:</strong> Yes — merge the public DTFs.co site into Shirt.co and phase out consumer transfer e-commerce and paid ads. Do not shut down DTF production. Use DTF to decorate shirts, hats, and contract jobs, and keep the partner transfer portal for print shops that already know how to send print-ready art.</p>
@@ -118,6 +119,35 @@
           <li>Block checkout below 300 dpi at final size. Show a Shirt.co upsell: “We’ll print this on shirts instead.”</li>
           <li>Align public prices with the Printavo matrix. Stop advertising $12.99 for a 30×24 if production is quoted at $42.99.</li>
           <li>Replace borrowed Shirt.co reviews with transfer-shop proof, or don’t show reviews.</li>
+        </ul>
+      </section>
+
+      <section class="planning-panel">
+        <h2>Migration plan (what actually has to happen)</h2>
+        <p>Shirt.co is WordPress/Elementor on WP Engine. DTFs.co is Magento. This repo cannot publish those live sites. Galaxy has to paste the replacement into <code>/services/dtf-transfers/</code> and set the 301s. The page to paste is already written: <a href="shirtco-dtf/">shirtco-dtf/</a>.</p>
+        <ol>
+          <li>Replace <code>https://shirt.co/services/dtf-transfers/</code> with the shirts-first copy. Keep the existing Gravity Form. Remove “side hustlers,” the <code>Shirts.co</code> typo, and “Visit DTFs.co.”</li>
+          <li>301 <code>https://shirt.co/dtf-transfer/</code> to <code>/services/dtf-transfers/</code>. Two live DTF pages are splitting SEO.</li>
+          <li>On the Shirt.co homepage, point every DTFs.co tab/card (“Need DTF transfers? Visit DTFs.co”) at <code>/services/dtf-transfers/</code>.</li>
+          <li>On Magento/Cloudflare, 301 the dtfs.co sitemap (31 URLs) per <a href="redirects.csv">redirects.csv</a>. Empty stubs like <code>/test.html</code> should not stay indexed.</li>
+          <li>Pause DTFs.co ads the same day the 301s go live so clicks do not land on Magento checkout.</li>
+          <li>Tell Galaxy to stop hobbyist DTF blogs. Canonical content lives on Shirt.co.</li>
+        </ol>
+      </section>
+
+      <section class="planning-panel">
+        <h2>Bugs and broken pages found while crawling</h2>
+        <p>Checked the 31 dtfs.co sitemap URLs plus Shirt.co DTF/homepage on Sep 8, 2026. HTTP 200 does not mean the page is usable.</p>
+        <ul>
+          <li><strong>Empty Magento shells</strong> (header/footer only, ~1.4k characters of text): <code>/test.html</code> (in the public sitemap), <code>/promo-products.html</code>, <code>/transfers.html</code>, <code>/what-we-do.html</code>, <code>/design-studio.html</code>, <code>/about.html</code>, <code>/get-a-quote.html</code>, <code>/request-online-store.html</code>.</li>
+          <li><strong>Two Shirt.co DTF URLs:</strong> <code>/dtf-transfer/</code> and <code>/services/dtf-transfers/</code>, each with its own canonical. The services page contains the typo “Shirts.co” and “side hustlers” copy.</li>
+          <li><strong>Shirt.co screen-printing page</strong> also contains “Shirts.co”.</li>
+          <li><strong>Phone split:</strong> DTFs.co header uses (844) 831-3837; Shirt.co uses (636) 926-2777. Standardize on 636.</li>
+          <li><strong>Address split:</strong> older briefs say 4524 S St Peters Pkwy; live Shirt.co footer is 4600. Use 4600.</li>
+          <li><strong>DTFs.co homepage</strong> still sells from $2.50 and $12.99 sheets below the Printavo matrix and partner rates.</li>
+          <li><strong>DTFs.co testimonials</strong> are Shirt.co hat/embroidery reviews.</li>
+          <li><strong>Blog URLs in Google</strong> (baby apparel, color-separation, how DTF is made) are not all in the Magento sitemap. Redirect those too when they 301 the domain.</li>
+          <li>Live <code>/services/dtf-transfers/</code> Gravity Form and <code>/get-a-quote/</code> both return 200. Keep those; do not invent a second form.</li>
         </ul>
       </section>
 
