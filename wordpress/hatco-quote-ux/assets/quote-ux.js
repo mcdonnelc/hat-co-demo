@@ -73,7 +73,9 @@
 
     const name = color.querySelector(selectors.colorName);
     const input = color.querySelector(selectors.colorInput);
-    const label = name ? name.textContent.trim() : input?.name || "Color";
+    const label = name
+      ? name.textContent.replace(/\u200B/g, "").trim()
+      : input?.name || "Color";
     const swatch = document.createElement("span");
 
     swatch.className = "hatco-color-chip";
@@ -82,6 +84,10 @@
       "--hatco-color",
       window.HatCoQuoteColors.swatchBackground(label)
     );
+
+    if (name) {
+      name.textContent = label.replace(/\//g, "/\u200B");
+    }
 
     color.insertBefore(swatch, color.firstChild);
     color.dataset.hatcoEnhanced = "true";
