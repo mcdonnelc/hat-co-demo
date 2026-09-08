@@ -456,6 +456,41 @@ body.hatco-quote-ux {
   margin-top: 4px;
 }
 
+.hatco-quote-ux .gform_page {
+  padding-bottom: 92px;
+}
+
+.hatco-quote-ux .gform_page_footer {
+  align-items: center;
+  backdrop-filter: blur(10px);
+  background: rgb(255 255 255 / 96%);
+  border: 1px solid var(--hatco-border);
+  border-bottom: 0;
+  border-radius: 14px 14px 0 0;
+  bottom: 0;
+  box-shadow: 0 -8px 24px rgb(24 45 33 / 12%);
+  box-sizing: border-box;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  left: 50%;
+  margin: 0 !important;
+  max-width: 1060px;
+  padding: 12px 84px max(12px, env(safe-area-inset-bottom)) 16px;
+  position: fixed !important;
+  transform: translateX(-50%);
+  width: calc(100% - 24px);
+  z-index: 99999999;
+}
+
+.hatco-quote-ux .gform_page_footer button,
+.hatco-quote-ux .gform_page_footer input[type="button"],
+.hatco-quote-ux .gform_page_footer input[type="submit"] {
+  flex: 0 1 220px;
+  margin: 0 !important;
+  min-height: 48px;
+}
+
 @media (max-width: 767px) {
   .hatco-quote-ux .wdac-robust-form_wrapper {
     margin-inline: -4px;
@@ -470,20 +505,24 @@ body.hatco-quote-ux {
     min-height: 0;
   }
 
-  .hatco-quote-ux .gform_page_footer {
-    background: rgb(255 255 255 / 96%);
-    border-top: 1px solid var(--hatco-border);
-    bottom: 0;
-    box-shadow: 0 -8px 20px rgb(24 45 33 / 9%);
-    margin: 24px -12px -12px;
-    padding: 12px;
-    position: sticky;
-    z-index: 20;
+  .hatco-quote-ux .gform_page {
+    padding-bottom: 104px;
   }
 
+  .hatco-quote-ux .gform_page_footer {
+    border-left: 0;
+    border-radius: 0;
+    border-right: 0;
+    padding-left: 12px;
+    padding-right: 76px;
+    width: 100%;
+  }
+
+  .hatco-quote-ux .gform_page_footer button,
   .hatco-quote-ux .gform_page_footer input[type="button"],
   .hatco-quote-ux .gform_page_footer input[type="submit"] {
-    min-height: 48px;
+    flex: 1 1 0;
+    min-width: 0;
   }
 }
 
