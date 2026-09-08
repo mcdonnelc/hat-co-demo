@@ -408,9 +408,7 @@
   function updateHiddenOrderSummary() {
     const summary = formatMultiColorOrder();
     document
-      .querySelectorAll(
-        `${selectors.wrapper} .gfield--type-hidden .gform_hidden`
-      )
+      .querySelectorAll(`${selectors.wrapper} #input_${FORM_ID}_41`)
       .forEach((input) => {
         input.value = summary;
       });
