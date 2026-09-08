@@ -18,6 +18,14 @@
   };
 
   let scheduled = false;
+  let multiColorProducts = [];
+
+  function cloneProducts(products) {
+    return (products || []).map((product) => ({
+      ...product,
+      sizes: { ...product.sizes }
+    }));
+  }
 
   function addPromisePanel(wrapper) {
     if (wrapper.querySelector(".hatco-proof-promise")) {
@@ -454,6 +462,7 @@
     const insertionIndex = firstIndex < 0 ? otherProducts.length : firstIndex;
     otherProducts.splice(insertionIndex, 0, ...colorProducts);
     window.WdacProductsObject.Products = otherProducts;
+    multiColorProducts = cloneProducts(otherProducts);
 
     const total = colorProducts.reduce(
       (sum, product) => sum + product.total,
@@ -613,6 +622,10 @@
       return;
     }
 
+    multiColorProducts = multiColorProducts.filter(
+      (product) => product.name !== item.dataset.productId
+    );
+
     window.setTimeout(() => {
       const qualityId = quality.dataset.qualitySelectId;
       const wrapper = Array.from(
@@ -714,6 +727,17 @@
       !window.HatCoQuoteSizes
     ) {
       return;
+    }
+
+    const currentProducts = window.WdacProductsObject?.Products || [];
+    if (multiColorProducts.length > 0 && currentProducts.length === 0) {
+      window.WdacProductsObject.Products = cloneProducts(multiColorProducts);
+      updateHiddenOrderSummary();
+    } else if (
+      multiColorProducts.length === 0 &&
+      currentProducts.length > 0
+    ) {
+      multiColorProducts = cloneProducts(currentProducts);
     }
 
     addPromisePanel(wrapper);
