@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Hat.co Quote UX
  * Description: Mobile-first usability enhancements for Hat.co's Gravity Forms quote flow.
- * Version: 0.4.2
+ * Version: 0.5.0
  * Author: Shirt.Co
  * Text Domain: hatco-quote-ux
  */
@@ -12,7 +12,7 @@ if (!defined('ABSPATH')) {
 }
 
 /**
- * Limit the enhancement bundle to the two Hat.co staging quote pages.
+ * Limit the enhancement bundle to Hat.co quote pages.
  */
 function hatco_quote_ux_is_target_page(): bool
 {
@@ -20,16 +20,25 @@ function hatco_quote_ux_is_target_page(): bool
 }
 
 /**
- * Load after the child theme so these focused rules can repair the existing form.
+ * Capture Google Ads click IDs sitewide, then load the visual enhancement
+ * bundle only on quote pages.
  */
 function hatco_quote_ux_enqueue_assets(): void
 {
+    $plugin_url = plugin_dir_url(__FILE__);
+    $plugin_path = plugin_dir_path(__FILE__);
+
+    wp_enqueue_script(
+        'hatco-gclid',
+        $plugin_url . 'assets/gclid.js',
+        array(),
+        (string) filemtime($plugin_path . 'assets/gclid.js'),
+        true
+    );
+
     if (!hatco_quote_ux_is_target_page()) {
         return;
     }
-
-    $plugin_url = plugin_dir_url(__FILE__);
-    $plugin_path = plugin_dir_path(__FILE__);
 
     wp_enqueue_style(
         'hatco-quote-ux',

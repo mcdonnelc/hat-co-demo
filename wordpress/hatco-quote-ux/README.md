@@ -17,6 +17,10 @@ A small WordPress plugin that improves the existing Hat.co Gravity Form without 
 - Allows customers to select multiple colors for one hat style and enter a
   separate size/quantity breakdown for each color. Each selected color is
   stored as its own line in the existing Gravity Forms quote summary.
+- Captures a valid Google Ads `gclid` from any Hat.co landing URL in a
+  90-day first-party cookie/local-storage fallback and populates Gravity Forms
+  hidden field 94 through AJAX page changes. The field remains optional, so
+  non-ad visitors can submit normally.
 - Adds meaningful headings to the existing four form pages.
 - Adds the confirmed proof workflow: no design tool, proof after quote approval and purchase, and no production before proof approval.
 - Carries turnaround, review, and human artwork-review trust signals into the form.
