@@ -11,7 +11,8 @@ shirtco/
 ├── transfers/         # Live DTF transfer order portal
 ├── supplies/          # Live QR supply kanban
 ├── quotes/            # Quoting tool planning space
-└── art/               # Art tracker planning space
+├── art/               # Art tracker planning space
+└── dtfs-strategy/     # DTFs.co vs Shirt.co brief, replacement page, redirects
 ```
 
 Production URLs:
@@ -21,6 +22,8 @@ Production URLs:
 - Supply Kanban: `https://mcdonnelc.github.io/shirtco/supplies/`
 - Quoting Tool: `https://mcdonnelc.github.io/shirtco/quotes/`
 - Art Tracker: `https://mcdonnelc.github.io/shirtco/art/`
+- DTFs.co Strategy: `https://mcdonnelc.github.io/shirtco/dtfs-strategy/`
+- Shirt.co DTF replacement preview: `https://mcdonnelc.github.io/shirtco/dtfs-strategy/shirtco-dtf/`
 
 Each tool owns its folder and can evolve independently. Add another tool by creating a new folder with an `index.html`, then add its card to the root hub.
 

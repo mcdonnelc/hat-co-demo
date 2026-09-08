@@ -413,6 +413,89 @@ footer {
   padding: clamp(56px, 9vw, 100px) 0 80px;
 }
 
+.project-page.brief {
+  width: min(880px, calc(100% - 40px));
+}
+
+.decision {
+  margin-top: 36px;
+  padding: 26px;
+  border: 1px solid #cfe4d8;
+  border-radius: 15px;
+  background: #f3faf6;
+}
+
+.decision p {
+  margin: 0;
+  color: var(--ink);
+  font-size: 1.05rem;
+  line-height: 1.55;
+}
+
+.planning-panel p,
+.planning-panel li {
+  line-height: 1.55;
+}
+
+.planning-panel p {
+  margin: 0 0 14px;
+  color: var(--muted);
+}
+
+.planning-panel p:last-child {
+  margin-bottom: 0;
+}
+
+.planning-panel h3 {
+  margin: 22px 0 10px;
+  font-size: 0.98rem;
+}
+
+.planning-panel ol {
+  margin: 0;
+  padding-left: 1.2rem;
+  color: var(--muted);
+  display: grid;
+  gap: 10px;
+}
+
+.planning-panel ol li {
+  padding: 4px 0;
+  border-bottom: 0;
+}
+
+.brief-table {
+  width: 100%;
+  margin: 8px 0 4px;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+.brief-table th,
+.brief-table td {
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+}
+
+.brief-table th {
+  color: var(--ink);
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.brief-table td {
+  color: var(--muted);
+}
+
+.source-list a {
+  color: var(--navy);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .back-link {
   display: inline-flex;
   align-items: center;
