@@ -418,6 +418,7 @@
 
         return (
           `<p>${productName}<br /> ` +
+          `Style #: ${product.style || "Not specified"}<br /> ` +
           `Total quantity: ${product.total}<br /> ` +
           `Quality tier: ${product.quality}<br /> ` +
           `Color: ${product.color}<br /> ` +
@@ -440,6 +441,7 @@
     const productName = item.dataset.productId;
     const qualityId = wrapper.dataset.qualityId;
     const qualityName = qualityId.slice(qualityId.lastIndexOf("|") + 1);
+    const styleNumber = styleNumberForQuality(item, qualityId);
     const products = window.WdacProductsObject?.Products || [];
     const firstIndex = products.findIndex(
       (product) => product.name === productName
@@ -471,6 +473,7 @@
         );
         return {
           name: productName,
+          style: styleNumber,
           quality: qualityName,
           color: row.dataset.color,
           sizes,
@@ -558,6 +561,7 @@
 
       const productName = item.dataset.productId;
       const qualityName = qualityId.slice(qualityId.lastIndexOf("|") + 1);
+      const styleNumber = styleNumberForQuality(item, qualityId);
       const saved = (window.WdacProductsObject?.Products || []).filter(
         (entry) =>
           entry.name === productName && entry.quality === qualityName
@@ -567,6 +571,7 @@
       );
 
       saved.forEach((entry) => {
+        entry.style = entry.style || styleNumber;
         const input = Array.from(
           colorGroup?.querySelectorAll(selectors.colorInput) || []
         ).find(
@@ -593,15 +598,20 @@
     updateHiddenOrderSummary();
   }
 
-  function productForQuality(item, qualityId) {
+  function styleNumberForQuality(item, qualityId) {
     const quality = Array.from(item.querySelectorAll(selectors.quality)).find(
       (candidate) => candidate.dataset.qualitySelectId === qualityId
     );
-    const styleNumber = quality
+    return quality
       ?.querySelector(".wdac-form-products__quality-sku")
       ?.textContent.replace(/^(SKU|Style)\s*#?:?\s*/i, "")
       .trim();
-    return window.HatCoQuoteSizes?.get(styleNumber);
+  }
+
+  function productForQuality(item, qualityId) {
+    return window.HatCoQuoteSizes?.get(
+      styleNumberForQuality(item, qualityId)
+    );
   }
 
   function handleColorClickCapture(event) {

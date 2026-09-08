@@ -16,7 +16,8 @@ A small WordPress plugin that improves the existing Hat.co Gravity Form without 
 - Labels product identifiers as `Style #` to match SanMar and S&S terminology.
 - Allows customers to select multiple colors for one hat style and enter a
   separate size/quantity breakdown for each color. Each selected color is
-  stored as its own line in the existing Gravity Forms quote summary.
+  stored as its own line in the existing Gravity Forms quote summary,
+  including the selected supplier style number.
 - Captures a valid Google Ads `gclid` from any Hat.co landing URL in a
   90-day first-party cookie/local-storage fallback and populates Gravity Forms
   hidden field 94 through AJAX page changes. The field remains optional, so
