@@ -73,6 +73,28 @@
     form.insertAdjacentElement("afterend", trust);
   }
 
+  function offsetTidioLauncher() {
+    const root = document.querySelector("#tidio-chat")?.shadowRoot;
+    if (!root) {
+      return false;
+    }
+
+    if (!root.querySelector("#hatco-tidio-quote-offset")) {
+      const style = document.createElement("style");
+      style.id = "hatco-tidio-quote-offset";
+      style.textContent = `
+        #button,
+        .widgetLabel {
+          position: relative !important;
+          top: -88px !important;
+        }
+      `;
+      root.appendChild(style);
+    }
+
+    return true;
+  }
+
   function enhanceColor(color) {
     if (color.dataset.hatcoEnhanced === "true") {
       syncColorState(color);
@@ -757,6 +779,7 @@
 
     addPromisePanel(wrapper);
     addTrustStrip(wrapper);
+    offsetTidioLauncher();
     wrapper.querySelectorAll(selectors.product).forEach(syncVendorSizes);
     wrapper.querySelectorAll(selectors.colorGroup).forEach(addColorDisclosure);
     wrapper.querySelectorAll(selectors.sizesWrapper).forEach(enhanceSizesWrapper);
@@ -805,4 +828,12 @@
   });
 
   observer.observe(document.body, { childList: true, subtree: true });
+
+  let tidioAttempts = 0;
+  const tidioTimer = window.setInterval(() => {
+    tidioAttempts += 1;
+    if (offsetTidioLauncher() || tidioAttempts >= 20) {
+      window.clearInterval(tidioTimer);
+    }
+  }, 500);
 })();
