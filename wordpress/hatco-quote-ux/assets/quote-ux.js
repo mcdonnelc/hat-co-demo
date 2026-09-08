@@ -1,0 +1,854 @@
+(function initializeHatCoQuoteUX() {
+  "use strict";
+
+  const FORM_ID = 2;
+  const DEFAULT_VISIBLE_COLORS = 12;
+  const selectors = {
+    wrapper: `#gform_wrapper_${FORM_ID}`,
+    form: `#gform_${FORM_ID}`,
+    colorGroup: ".wdac-form-products__quality-colors",
+    color: ".js-wdac-form-color",
+    colorInput: ".js-wdac-checkbox",
+    colorName: ".wdac-form-tooltiptext",
+    quantityInput: ".js-wdac-form-products-item-add",
+    sizesWrapper: ".wdac-form-products__quality-sizes-wrapper",
+    product: ".wdac-form-item[data-product-id]",
+    quality: "[data-quality-select-id]",
+    page: `.gform_page[id^="gform_page_${FORM_ID}_"]`
+  };
+
+  let scheduled = false;
+  let multiColorProducts = [];
+
+  function cloneProducts(products) {
+    return (products || []).map((product) => ({
+      ...product,
+      sizes: { ...product.sizes }
+    }));
+  }
+
+  function addPromisePanel(wrapper) {
+    if (wrapper.querySelector(".hatco-proof-promise")) {
+      return;
+    }
+
+    const form = wrapper.querySelector(selectors.form);
+    if (!form) {
+      return;
+    }
+
+    const panel = document.createElement("section");
+    panel.className = "hatco-proof-promise";
+    panel.setAttribute("aria-label", "How artwork approval works");
+    panel.innerHTML = `
+      <div class="hatco-proof-promise__icon" aria-hidden="true">✓</div>
+      <div>
+        <h3>Simple choices now. A real proof before production.</h3>
+        <p>No design tool needed. Choose your hats and upload whatever artwork you have. After you approve your quote and complete purchase, our art team will email a proof. Nothing is produced until you approve it.</p>
+      </div>
+    `;
+
+    form.insertAdjacentElement("beforebegin", panel);
+  }
+
+  function addTrustStrip(wrapper) {
+    if (wrapper.querySelector(".hatco-quote-trust")) {
+      return;
+    }
+
+    const form = wrapper.querySelector(selectors.form);
+    if (!form) {
+      return;
+    }
+
+    const trust = document.createElement("ul");
+    trust.className = "hatco-quote-trust";
+    trust.setAttribute("aria-label", "Why order from Hat.co");
+    trust.innerHTML = `
+      <li><strong>5-day</strong><span>standard turnaround</span></li>
+      <li><strong>685+</strong><span>five-star reviews</span></li>
+      <li><strong>Human</strong><span>artwork review</span></li>
+    `;
+
+    form.insertAdjacentElement("afterend", trust);
+  }
+
+  function enhanceColor(color) {
+    if (color.dataset.hatcoEnhanced === "true") {
+      syncColorState(color);
+      return;
+    }
+
+    const name = color.querySelector(selectors.colorName);
+    const input = color.querySelector(selectors.colorInput);
+    const label = name
+      ? name.textContent.replace(/\u200B/g, "").trim()
+      : input?.name || "Color";
+    const swatch = document.createElement("span");
+
+    swatch.className = "hatco-color-chip";
+    swatch.setAttribute("aria-hidden", "true");
+    swatch.style.setProperty(
+      "--hatco-color",
+      window.HatCoQuoteColors.swatchBackground(label)
+    );
+
+    if (name) {
+      name.textContent = label.replace(/\//g, "/\u200B");
+    }
+
+    color.insertBefore(swatch, color.firstChild);
+    color.dataset.hatcoEnhanced = "true";
+
+    if (input) {
+      input.setAttribute("aria-label", `Select ${label}`);
+      input.addEventListener("change", () => syncColorState(color));
+    }
+
+    syncColorState(color);
+  }
+
+  function syncColorState(color) {
+    const input = color.querySelector(selectors.colorInput);
+    color.setAttribute("aria-pressed", input?.checked ? "true" : "false");
+  }
+
+  function addColorDisclosure(group) {
+    const colors = Array.from(group.querySelectorAll(selectors.color));
+    colors.forEach(enhanceColor);
+
+    if (colors.length <= DEFAULT_VISIBLE_COLORS || group.dataset.hatcoDisclosure === "true") {
+      return;
+    }
+
+    colors.slice(DEFAULT_VISIBLE_COLORS).forEach((color) => {
+      color.classList.add("hatco-color-overflow");
+    });
+    group.classList.add("hatco-colors-collapsed");
+    group.dataset.hatcoDisclosure = "true";
+
+    const button = document.createElement("button");
+    button.className = "hatco-color-disclosure";
+    button.type = "button";
+    button.setAttribute("aria-expanded", "false");
+    button.textContent = `View all ${colors.length} colors`;
+
+    button.addEventListener("click", () => {
+      const expanded = button.getAttribute("aria-expanded") === "true";
+      button.setAttribute("aria-expanded", String(!expanded));
+      group.classList.toggle("hatco-colors-collapsed", expanded);
+      button.textContent = expanded
+        ? `View all ${colors.length} colors`
+        : "Show popular colors";
+    });
+
+    group.insertAdjacentElement("afterend", button);
+  }
+
+  function createQuantityButton(input, direction) {
+    const button = document.createElement("button");
+    const label = direction > 0 ? "Increase quantity" : "Decrease quantity";
+
+    button.className = "hatco-quantity-button";
+    button.type = "button";
+    button.setAttribute("aria-label", label);
+    button.textContent = direction > 0 ? "+" : "−";
+    button.addEventListener("click", () => {
+      const current = Number.parseInt(input.value, 10) || 0;
+      const step = Number.parseInt(input.step, 10) || 1;
+      input.value = Math.max(0, current + direction * step);
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      input.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+
+    return button;
+  }
+
+  function createQuantityControl(input) {
+    const control = document.createElement("div");
+    control.className = "hatco-quantity-control";
+    control.appendChild(createQuantityButton(input, -1));
+    control.appendChild(input);
+    control.appendChild(createQuantityButton(input, 1));
+    return control;
+  }
+
+  function enhanceQuantity(input) {
+    if (input.dataset.hatcoEnhanced === "true") {
+      return;
+    }
+
+    const field = input.closest(".js-wdac-form-products-item-add-wrapper");
+    if (!field) {
+      return;
+    }
+
+    field.classList.add("hatco-size-field");
+
+    const parent = input.parentNode;
+    const nextSibling = input.nextSibling;
+    const control = createQuantityControl(input);
+    parent.insertBefore(control, nextSibling);
+
+    input.setAttribute("inputmode", "numeric");
+    input.setAttribute("min", "0");
+    input.dataset.hatcoEnhanced = "true";
+  }
+
+  function enhanceSizesWrapper(wrapper) {
+    if (wrapper.dataset.hatcoSizes === "true") {
+      return;
+    }
+
+    wrapper.dataset.hatcoSizes = "true";
+
+    const sizes = wrapper.querySelectorAll(".wdac-form-products__size");
+    if (sizes.length === 1) {
+      wrapper.classList.add("hatco-single-size");
+      const subtitle = wrapper.querySelector(".wdac-form-products__subtitle");
+      if (subtitle) {
+        subtitle.textContent = "How many do you need?";
+      }
+    }
+  }
+
+  function createSizeField(qualityId, size, index) {
+    const field = document.createElement("div");
+    const label = document.createElement("label");
+    const input = document.createElement("input");
+    const inputId = `hatco-qty-${qualityId}-${index}`.replace(
+      /[^a-zA-Z0-9_-]/g,
+      "-"
+    );
+
+    field.className =
+      "wdac-form-products__size js-wdac-proxy-focusable " +
+      "js-wdac-form-products-item-add-wrapper js-wdac-form-size";
+
+    label.className = "wdac-form-products__size-label";
+    label.htmlFor = inputId;
+    label.textContent = size;
+
+    input.id = inputId;
+    input.name = `${qualityId}|${size}`;
+    input.type = "number";
+    input.min = "0";
+    input.placeholder = "0";
+    input.className =
+      "wdac-form-products__size-input js-wdac-form-products-item-add";
+
+    const separator = qualityId.lastIndexOf("|");
+    const productName = qualityId.slice(0, separator);
+    const qualityName = qualityId.slice(separator + 1);
+    const savedProduct = window.WdacProductsObject?.Products?.find(
+      (product) =>
+        product.name === productName && product.quality === qualityName
+    );
+    const savedQuantity = Number.parseInt(savedProduct?.sizes?.[size], 10) || 0;
+    if (savedQuantity > 0) {
+      input.value = String(savedQuantity);
+      field.classList.add("active");
+    }
+
+    field.append(label, input);
+    return field;
+  }
+
+  function createSizesWrapper(qualityId, product) {
+    const wrapper = document.createElement("div");
+    const heading = document.createElement("h4");
+    const help = document.createElement("p");
+    const fields = document.createElement("div");
+
+    wrapper.className = "wdac-form-products__quality-sizes-wrapper";
+    wrapper.dataset.qualityId = qualityId;
+    wrapper.dataset.hatcoSupplier = product.supplier;
+
+    heading.className = "wdac-h4 wdac-form-products__subtitle";
+    heading.textContent = "Select your sizes";
+
+    help.className = "wdac-text-semismall";
+    help.textContent = product.note || "";
+    help.hidden = !product.note;
+
+    fields.className = "wdac-form-products__quality-sizes";
+    product.sizes.forEach((size, index) => {
+      fields.appendChild(createSizeField(qualityId, size, index));
+    });
+
+    wrapper.append(heading, help, fields);
+    return wrapper;
+  }
+
+  function colorDetails(input) {
+    const color = input.closest(selectors.color);
+    const name = color
+      ?.querySelector(selectors.colorName)
+      ?.textContent.replace(/\u200B/g, "")
+      .trim();
+    const value = input.dataset.itemColorValue?.split("|").pop() || input.name;
+
+    return { color, input, name: name || value, value };
+  }
+
+  function savedQuantities(productName, qualityName, colorValue) {
+    const saved = window.WdacProductsObject?.Products?.find(
+      (product) =>
+        product.name === productName &&
+        product.quality === qualityName &&
+        product.color === colorValue
+    );
+
+    if (!saved) {
+      return {};
+    }
+
+    const sizes = { ...saved.sizes };
+    if (sizes.OSFM && !sizes["One Size Fits Most"]) {
+      sizes["One Size Fits Most"] = sizes.OSFM;
+    }
+    return sizes;
+  }
+
+  function createColorQuantityInput({
+    colorValue,
+    productName,
+    qualityName,
+    quantity,
+    size,
+    sizeIndex
+  }) {
+    const input = document.createElement("input");
+    input.type = "number";
+    input.min = "0";
+    input.inputMode = "numeric";
+    input.placeholder = "0";
+    input.value = quantity > 0 ? String(quantity) : "";
+    input.className = "hatco-color-quantity-input";
+    input.dataset.color = colorValue;
+    input.dataset.product = productName;
+    input.dataset.quality = qualityName;
+    input.dataset.size = size;
+    input.id = `hatco-color-qty-${productName}-${qualityName}-${colorValue}-${sizeIndex}`
+      .replace(/[^a-zA-Z0-9_-]/g, "-");
+    input.setAttribute("aria-label", `${colorValue}, ${size}, quantity`);
+    return input;
+  }
+
+  function createColorQuantityRow({
+    colorName,
+    colorValue,
+    product,
+    productName,
+    qualityName,
+    saved
+  }) {
+    const row = document.createElement("section");
+    const header = document.createElement("h5");
+    const swatch = document.createElement("span");
+    const name = document.createElement("span");
+    const fields = document.createElement("div");
+
+    row.className = "hatco-color-quantity-row";
+    row.dataset.color = colorValue;
+
+    header.className = "hatco-color-quantity-row__header";
+    swatch.className = "hatco-color-quantity-row__swatch";
+    swatch.style.setProperty(
+      "--hatco-color",
+      window.HatCoQuoteColors.swatchBackground(colorName)
+    );
+    name.textContent = colorName;
+    header.append(swatch, name);
+
+    fields.className = "hatco-color-quantity-row__fields";
+    product.sizes.forEach((size, sizeIndex) => {
+      const field = document.createElement("div");
+      const label = document.createElement("label");
+      const quantity = Number.parseInt(saved[size], 10) || 0;
+      const input = createColorQuantityInput({
+        colorValue,
+        productName,
+        qualityName,
+        quantity,
+        size,
+        sizeIndex
+      });
+
+      field.className = "hatco-color-quantity-row__field";
+      label.htmlFor = input.id;
+      label.textContent = size;
+      field.append(label, createQuantityControl(input));
+      fields.appendChild(field);
+    });
+
+    row.append(header, fields);
+    return row;
+  }
+
+  function formatMultiColorOrder() {
+    return (window.WdacProductsObject?.Products || [])
+      .filter((product) => product.total > 0)
+      .map((product) => {
+        const productName = product.name.toUpperCase();
+        const sizes = Object.entries(product.sizes)
+          .filter(([, quantity]) => quantity > 0)
+          .map(([size, quantity]) => `${quantity} @ ${size}`)
+          .join(", ");
+
+        return (
+          `<p>${productName}<br /> ` +
+          `Style #: ${product.style || "Not specified"}<br /> ` +
+          `Total quantity: ${product.total}<br /> ` +
+          `Quality tier: ${product.quality}<br /> ` +
+          `Color: ${product.color}<br /> ` +
+          `Sizes: ${sizes || "Not specified"}</p> `
+        );
+      })
+      .join("\n");
+  }
+
+  function updateHiddenOrderSummary() {
+    const summary = formatMultiColorOrder();
+    document
+      .querySelectorAll(`${selectors.wrapper} #input_${FORM_ID}_41`)
+      .forEach((input) => {
+        input.value = summary;
+      });
+  }
+
+  function updateMultiColorProducts(item, wrapper) {
+    const productName = item.dataset.productId;
+    const qualityId = wrapper.dataset.qualityId;
+    const qualityName = qualityId.slice(qualityId.lastIndexOf("|") + 1);
+    const styleNumber = styleNumberForQuality(item, qualityId);
+    const products = window.WdacProductsObject?.Products || [];
+    const firstIndex = products.findIndex(
+      (product) => product.name === productName
+    );
+    const otherProducts = products.filter(
+      (product) => product.name !== productName
+    );
+    const colorProducts = Array.from(
+      wrapper.querySelectorAll(".hatco-color-quantity-row")
+    )
+      .map((row) => {
+        const sizes = {};
+        row
+          .querySelectorAll(".hatco-color-quantity-input")
+          .forEach((input) => {
+            const quantity = Math.max(
+              0,
+              Number.parseInt(input.value, 10) || 0
+            );
+            input.value = quantity > 0 ? String(quantity) : "";
+            if (quantity > 0) {
+              sizes[input.dataset.size] = quantity;
+            }
+          });
+
+        const total = Object.values(sizes).reduce(
+          (sum, quantity) => sum + quantity,
+          0
+        );
+        return {
+          name: productName,
+          style: styleNumber,
+          quality: qualityName,
+          color: row.dataset.color,
+          sizes,
+          total
+        };
+      })
+      .filter((product) => product.total > 0);
+
+    const insertionIndex = firstIndex < 0 ? otherProducts.length : firstIndex;
+    otherProducts.splice(insertionIndex, 0, ...colorProducts);
+    window.WdacProductsObject.Products = otherProducts;
+    multiColorProducts = cloneProducts(otherProducts);
+
+    const total = colorProducts.reduce(
+      (sum, product) => sum + product.total,
+      0
+    );
+    const count = item.querySelector(".js-form-products-title-count-value");
+    if (count) {
+      count.textContent = total > 0 ? String(total) : "";
+      count.parentNode.classList.toggle("active", total > 0);
+    }
+
+    updateHiddenOrderSummary();
+  }
+
+  function renderMultiColorQuantities(
+    item,
+    wrapper,
+    product,
+    syncProducts = true
+  ) {
+    const qualityId = wrapper.dataset.qualityId;
+    const productName = item.dataset.productId;
+    const qualityName = qualityId.slice(qualityId.lastIndexOf("|") + 1);
+    const colors = Array.from(
+      item.querySelectorAll(
+        `.wdac-form-products__quality-colors-wrapper[data-quality-id="${qualityId}"] ${selectors.colorInput}:checked`
+      )
+    ).map(colorDetails);
+    const heading = wrapper.querySelector(".wdac-form-products__subtitle");
+    const help = wrapper.querySelector(".wdac-text-semismall");
+    let list = wrapper.querySelector(".hatco-color-quantity-list");
+
+    if (!list) {
+      list = document.createElement("div");
+      list.className = "hatco-color-quantity-list";
+      wrapper.appendChild(list);
+    }
+
+    heading.textContent = colors.length
+      ? "Quantities by color"
+      : "Choose one or more colors";
+    help.hidden = false;
+    help.textContent = colors.length
+      ? `${product.note ? `${product.note} ` : ""}Enter how many you need for each selected color.`
+      : "Select colors above to add their quantities.";
+
+    list.replaceChildren(
+      ...colors.map(({ name, value }) =>
+        createColorQuantityRow({
+          colorName: name,
+          colorValue: value,
+          product,
+          productName,
+          qualityName,
+          saved: savedQuantities(productName, qualityName, value)
+        })
+      )
+    );
+    wrapper.classList.add("hatco-multicolor-ready");
+    if (syncProducts) {
+      updateMultiColorProducts(item, wrapper);
+    }
+  }
+
+  function initializeMultiColor(item, productByQuality) {
+    productByQuality.forEach(({ product, qualityId }) => {
+      const wrapper = Array.from(
+        item.querySelectorAll(selectors.sizesWrapper)
+      ).find((candidate) => candidate.dataset.qualityId === qualityId);
+      if (!wrapper) {
+        return;
+      }
+
+      const productName = item.dataset.productId;
+      const qualityName = qualityId.slice(qualityId.lastIndexOf("|") + 1);
+      const styleNumber = styleNumberForQuality(item, qualityId);
+      const saved = (window.WdacProductsObject?.Products || []).filter(
+        (entry) =>
+          entry.name === productName && entry.quality === qualityName
+      );
+      const colorGroup = item.querySelector(
+        `.wdac-form-products__quality-colors-wrapper[data-quality-id="${qualityId}"]`
+      );
+
+      saved.forEach((entry) => {
+        entry.style = entry.style || styleNumber;
+        const input = Array.from(
+          colorGroup?.querySelectorAll(selectors.colorInput) || []
+        ).find(
+          (candidate) =>
+            colorDetails(candidate).value === entry.color
+        );
+        if (input) {
+          input.checked = true;
+          syncColorState(input.closest(selectors.color));
+        }
+      });
+
+      renderMultiColorQuantities(item, wrapper, product, false);
+    });
+
+    const total = (window.WdacProductsObject?.Products || [])
+      .filter((product) => product.name === item.dataset.productId)
+      .reduce((sum, product) => sum + (product.total || 0), 0);
+    const count = item.querySelector(".js-form-products-title-count-value");
+    if (count) {
+      count.textContent = total > 0 ? String(total) : "";
+      count.parentNode.classList.toggle("active", total > 0);
+    }
+    updateHiddenOrderSummary();
+  }
+
+  function styleNumberForQuality(item, qualityId) {
+    const quality = Array.from(item.querySelectorAll(selectors.quality)).find(
+      (candidate) => candidate.dataset.qualitySelectId === qualityId
+    );
+    return quality
+      ?.querySelector(".wdac-form-products__quality-sku")
+      ?.textContent.replace(/^(SKU|Style)\s*#?:?\s*/i, "")
+      .trim();
+  }
+
+  function productForQuality(item, qualityId) {
+    return window.HatCoQuoteSizes?.get(
+      styleNumberForQuality(item, qualityId)
+    );
+  }
+
+  function handleColorClickCapture(event) {
+    const input = event.target.closest(selectors.colorInput);
+    const group = input?.closest(
+      ".wdac-form-products__quality-colors-wrapper"
+    );
+    const item = input?.closest(selectors.product);
+    if (!input || !group || !item) {
+      return;
+    }
+
+    const savedProducts = (window.WdacProductsObject?.Products || []).map(
+      (product) => ({
+        ...product,
+        sizes: { ...product.sizes }
+      })
+    );
+
+    group.classList.remove("js-wdac-checkboxes-wrapper");
+    window.setTimeout(() => {
+      group.classList.add("js-wdac-checkboxes-wrapper");
+      window.WdacProductsObject.Products = savedProducts;
+      group.querySelectorAll(selectors.color).forEach(syncColorState);
+
+      const wrapper = Array.from(
+        item.querySelectorAll(selectors.sizesWrapper)
+      ).find(
+        (candidate) => candidate.dataset.qualityId === group.dataset.qualityId
+      );
+      const product = productForQuality(item, group.dataset.qualityId);
+      if (wrapper && product) {
+        renderMultiColorQuantities(item, wrapper, product);
+      }
+    }, 0);
+  }
+
+  function handleColorQuantityInput(event) {
+    const input = event.target.closest(".hatco-color-quantity-input");
+    if (!input) {
+      return;
+    }
+
+    const item = input.closest(selectors.product);
+    const wrapper = input.closest(selectors.sizesWrapper);
+    if (item && wrapper) {
+      updateMultiColorProducts(item, wrapper);
+    }
+  }
+
+  function handleQualityClick(event) {
+    const quality = event.target.closest(selectors.quality);
+    const item = quality?.closest(selectors.product);
+    if (!quality || !item) {
+      return;
+    }
+
+    multiColorProducts = multiColorProducts.filter(
+      (product) => product.name !== item.dataset.productId
+    );
+
+    window.setTimeout(() => {
+      const qualityId = quality.dataset.qualitySelectId;
+      const wrapper = Array.from(
+        item.querySelectorAll(selectors.sizesWrapper)
+      ).find((candidate) => candidate.dataset.qualityId === qualityId);
+      const product = productForQuality(item, qualityId);
+      if (wrapper && product) {
+        renderMultiColorQuantities(item, wrapper, product);
+      }
+    }, 75);
+  }
+
+  function syncVendorSizes(item) {
+    if (item.dataset.hatcoSizesCatalog === "true") {
+      return;
+    }
+
+    const qualities = Array.from(item.querySelectorAll(selectors.quality));
+    const mappedQualities = qualities
+      .map((quality) => {
+        const styleElement = quality.querySelector(
+          ".wdac-form-products__quality-sku"
+        );
+        const styleNumber = styleElement?.textContent
+          .replace(/^(SKU|Style)\s*#?:?\s*/i, "")
+          .trim();
+        const product = window.HatCoQuoteSizes.get(styleNumber);
+
+        if (!styleElement || !styleNumber || !product) {
+          return null;
+        }
+
+        styleElement.textContent = `Style #${styleNumber}`;
+        return {
+          product,
+          qualityId: quality.dataset.qualitySelectId,
+          selected: quality.classList.contains("active")
+        };
+      })
+      .filter(Boolean);
+
+    if (!mappedQualities.length) {
+      return;
+    }
+
+    item.querySelectorAll(".wdac-form-products__sizes").forEach((sizes) => {
+      sizes.remove();
+    });
+
+    const sizesContainer = document.createElement("div");
+    sizesContainer.className = "wdac-form-products__sizes";
+
+    mappedQualities.forEach(({ product, qualityId, selected }) => {
+      const wrapper = createSizesWrapper(qualityId, product);
+      wrapper.classList.toggle("active", selected);
+      sizesContainer.appendChild(wrapper);
+    });
+
+    const colors = item.querySelector(".wdac-form-products__colors");
+    if (colors) {
+      colors.insertAdjacentElement("afterend", sizesContainer);
+    } else {
+      item.appendChild(sizesContainer);
+    }
+
+    item.dataset.hatcoSizesCatalog = "true";
+    initializeMultiColor(item, mappedQualities);
+  }
+
+  function addStepHeading(page) {
+    if (page.querySelector(".hatco-step-heading")) {
+      return;
+    }
+
+    const pageNumber = Number.parseInt(page.id.split("_").pop(), 10);
+    const titles = {
+      1: ["Choose your hats", "Pick styles, colors, and quantities. You can mix colors."],
+      2: ["Artwork and decoration", "Upload what you have or ask our team for help."],
+      3: ["Timing and delivery", "Tell us when and where you need your order."],
+      4: ["Contact and review", "Review your choices and tell us where to send the quote."]
+    };
+    const content = titles[pageNumber];
+
+    if (!content) {
+      return;
+    }
+
+    const heading = document.createElement("header");
+    heading.className = "hatco-step-heading";
+    heading.innerHTML = `<span>Step ${pageNumber} of 4</span><h2>${content[0]}</h2><p>${content[1]}</p>`;
+    page.insertBefore(heading, page.firstChild);
+  }
+
+  function movePopularAddons(page) {
+    if (page.dataset.hatcoAddonsMoved === "true") {
+      return;
+    }
+
+    const describe = page.querySelector("#field_2_37");
+    const addonIds = [
+      "field_2_63",
+      "field_2_76",
+      "field_2_78",
+      "field_2_80",
+      "field_2_84",
+      "field_2_87"
+    ];
+    if (!describe?.parentElement) {
+      return;
+    }
+
+    let anchor = describe;
+    addonIds.forEach((id) => {
+      const field = page.querySelector(`#${id}`);
+      if (field && field.parentElement === describe.parentElement) {
+        anchor.insertAdjacentElement("afterend", field);
+        anchor = field;
+      }
+    });
+
+    page.dataset.hatcoAddonsMoved = "true";
+  }
+
+  function enhance() {
+    const wrapper = document.querySelector(selectors.wrapper);
+    if (
+      !wrapper ||
+      !window.HatCoQuoteColors ||
+      !window.HatCoQuoteSizes
+    ) {
+      return;
+    }
+
+    const currentProducts = window.WdacProductsObject?.Products || [];
+    if (multiColorProducts.length > 0 && currentProducts.length === 0) {
+      window.WdacProductsObject.Products = cloneProducts(multiColorProducts);
+      updateHiddenOrderSummary();
+    } else if (
+      multiColorProducts.length === 0 &&
+      currentProducts.length > 0
+    ) {
+      multiColorProducts = cloneProducts(currentProducts);
+    }
+
+    addPromisePanel(wrapper);
+    addTrustStrip(wrapper);
+    wrapper.querySelectorAll(selectors.product).forEach(syncVendorSizes);
+    wrapper.querySelectorAll(selectors.colorGroup).forEach(addColorDisclosure);
+    wrapper.querySelectorAll(selectors.sizesWrapper).forEach(enhanceSizesWrapper);
+    wrapper.querySelectorAll(selectors.quantityInput).forEach(enhanceQuantity);
+    wrapper.querySelectorAll(selectors.page).forEach(addStepHeading);
+    const artworkPage = wrapper.querySelector(`#gform_page_${FORM_ID}_2`);
+    if (artworkPage) {
+      movePopularAddons(artworkPage);
+    }
+  }
+
+  function scheduleEnhance() {
+    if (scheduled) {
+      return;
+    }
+
+    scheduled = true;
+    window.requestAnimationFrame(() => {
+      scheduled = false;
+      enhance();
+    });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", enhance);
+  } else {
+    enhance();
+  }
+
+  document.addEventListener("click", handleColorClickCapture, true);
+  document.addEventListener("click", handleQualityClick);
+  document.addEventListener("input", handleColorQuantityInput);
+  document.addEventListener("change", handleColorQuantityInput);
+  document.addEventListener("submit", updateHiddenOrderSummary, true);
+
+  document.addEventListener("gform_page_loaded", scheduleEnhance);
+  document.addEventListener("gform/postRender", scheduleEnhance);
+
+  if (window.jQuery) {
+    window.jQuery(document).on(
+      "gform_page_loaded gform_post_render",
+      scheduleEnhance
+    );
+  }
+
+  const observer = new MutationObserver((mutations) => {
+    if (mutations.some((mutation) => mutation.addedNodes.length > 0)) {
+      scheduleEnhance();
+    }
+  });
+
+  observer.observe(document.body, { childList: true, subtree: true });
+})();
