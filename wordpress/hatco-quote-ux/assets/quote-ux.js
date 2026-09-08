@@ -766,6 +766,36 @@
     page.insertBefore(heading, page.firstChild);
   }
 
+  function movePopularAddons(page) {
+    if (page.dataset.hatcoAddonsMoved === "true") {
+      return;
+    }
+
+    const describe = page.querySelector("#field_2_37");
+    const addonIds = [
+      "field_2_63",
+      "field_2_76",
+      "field_2_78",
+      "field_2_80",
+      "field_2_84",
+      "field_2_87"
+    ];
+    if (!describe?.parentElement) {
+      return;
+    }
+
+    let anchor = describe;
+    addonIds.forEach((id) => {
+      const field = page.querySelector(`#${id}`);
+      if (field && field.parentElement === describe.parentElement) {
+        anchor.insertAdjacentElement("afterend", field);
+        anchor = field;
+      }
+    });
+
+    page.dataset.hatcoAddonsMoved = "true";
+  }
+
   function enhance() {
     const wrapper = document.querySelector(selectors.wrapper);
     if (
@@ -795,6 +825,10 @@
     wrapper.querySelectorAll(selectors.sizesWrapper).forEach(enhanceSizesWrapper);
     wrapper.querySelectorAll(selectors.quantityInput).forEach(enhanceQuantity);
     wrapper.querySelectorAll(selectors.page).forEach(addStepHeading);
+    const artworkPage = wrapper.querySelector(`#gform_page_${FORM_ID}_2`);
+    if (artworkPage) {
+      movePopularAddons(artworkPage);
+    }
   }
 
   function scheduleEnhance() {

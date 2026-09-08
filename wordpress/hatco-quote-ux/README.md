@@ -25,6 +25,8 @@ A small WordPress plugin that improves the existing Hat.co Gravity Form without 
 - Keeps Previous, Next, and Submit controls fixed to the bottom of the
   viewport on every form page, with content clearance and space reserved for
   the Tidio launcher.
+- Moves all location-specific Popular add-ons fields below “Describe your
+  order” while preserving Gravity Forms conditional visibility.
 - Adds meaningful headings to the existing four form pages.
 - Adds the confirmed proof workflow: no design tool, proof after quote approval and purchase, and no production before proof approval.
 - Carries turnaround, review, and human artwork-review trust signals into the form.
