@@ -14,6 +14,9 @@ A small WordPress plugin that improves the existing Hat.co Gravity Form without 
   do not show generic S/M/L choices.
 - Adds missing quantity fields for visor, youth, and bucket/booney styles.
 - Labels product identifiers as `Style #` to match SanMar and S&S terminology.
+- Allows customers to select multiple colors for one hat style and enter a
+  separate size/quantity breakdown for each color. Each selected color is
+  stored as its own line in the existing Gravity Forms quote summary.
 - Adds meaningful headings to the existing four form pages.
 - Adds the confirmed proof workflow: no design tool, proof after quote approval and purchase, and no production before proof approval.
 - Carries turnaround, review, and human artwork-review trust signals into the form.

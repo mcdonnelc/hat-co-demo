@@ -6,7 +6,7 @@ form does not imply that an adjustable or one-size hat is sold in S/M/L sizes.
 
 | Style | Product | Supplier | Sizes shown on Hat.co |
 | --- | --- | --- | --- |
-| 112 | Richardson Snapback Trucker | S&S Activewear / SanMar | SM, OSFM, XL (SM/XL limited colors) |
+| 112 | Richardson Snapback Trucker | S&S Activewear / SanMar | SM, One Size Fits Most, XL (SM/XL limited colors) |
 | 6606 | YP Classics Retro Trucker | S&S Activewear | Adjustable |
 | 110 | Richardson R-Flex Trucker | S&S Activewear | S/M, L/XL |
 | 110M | Flexfit 110 Mesh-Back | S&S Activewear | Adjustable |
